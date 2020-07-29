@@ -10,7 +10,7 @@ This repo validates the onnx model and get metadata from Github.
 Install python libraries to run `load_onnx_from_github.py`
 
 ```
-bat install_py_lib.bat
+install_py_lib.bat
 ```
 ### To increase calling API limit, you need to set Github Authentication
 To do so, you need to manually create another python file `secret_config.py`. That file needs to contain:
