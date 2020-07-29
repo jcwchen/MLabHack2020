@@ -5,13 +5,23 @@ import tempfile
 import os
 import os.path as osp
 import onnx
-
 import sys
 import importlib
 import torch.nn as nn
+from enum import Enum
+
+class Status(Enum):
+    SUCCESS = 1
+    INVALID_ONNX = -1
+    MULTIPLE_ONNX_FILES = -2
+    INVALID_URL = -3
+    ONNX_NOT_FOUND = -4
 
 github_username = ""
 github_token = ""
+target_onnx_size = [0]
+result_json = {'status': Status.SUCCESS.value}
+
 
 def set_github_auth():
     """
@@ -34,9 +44,13 @@ def download_from_directory(url, save_directory, exclude_name={}):
         url (str): GitHub url. 
         e.g., https://github.com/jcwchen/MLabHack2020/tree/master/data/onnx/mnist
         save_directory (str): save path locally
-        (Optional) exclude_name (str): exclude some files or directories  
+        (Optional) exclude_name (str): exclude some files or directories
+    Returns:
+        Status: download status
     """
     result = get_github_json(url)
+    if not result_json['status']:
+        return result_json['status']
     for files in result:
         if files['download_url']:
             file_path = osp.join(save_directory, files['name'])
@@ -46,12 +60,22 @@ def download_from_directory(url, save_directory, exclude_name={}):
         elif files['type'] == 'dir' and files['name'] not in exclude_name:
             directory_path = osp.join(save_directory, files['name'])
             os.mkdir(directory_path)
-            download_from_directory(files['url'].replace('?ref=master', ''), directory_path, exclude_name)
+            download_status = download_from_directory(files['url'].replace('?ref=master', ''), directory_path, exclude_name)
+            if not download_status:
+                return download_status
+        if files['name'].endswith('.onnx'):
+            # multiple onnx files in the same model directory
+            if target_onnx_size[0] != 0:
+                return Status.MULTIPLE_ONNX_FILES.value
+            else:
+                target_onnx_size[0] = files['size']
+    return Status.SUCCESS.value
 
 
 def find_onnx_file_in_directoy(path):
     """
-    return onnx model path name.
+    Returns:
+        str: onnx model path name
     """
     for root, dirs, files in os.walk(path):
         for filename in files:
@@ -93,12 +117,22 @@ def parse_github_url(url, module_fname, class_name):
     """    
     api_url, content_url = convert2github_api(url)
     star_count, owner_name = get_github_metadata(api_url)
+    if star_count is None:
+        return result_json        
     # create a temp directory for downloading model; will remove if the validation is done
     with tempfile.TemporaryDirectory() as tmp:
         # download from model/
         model_directory_path = osp.join(tmp, 'model')
         os.mkdir(model_directory_path)
-        download_from_directory(osp.join(content_url, 'model'), model_directory_path)
+        download_status = download_from_directory(osp.join(content_url, 'model'), model_directory_path)
+        # download fail
+        if not download_status:
+            result_json['status'] = download_status
+            return result_json
+        # onnx model not found
+        if target_onnx_size[0] == 0:
+            result_json['status'] = Status.ONNX_NOT_FOUND.value
+            return result_json
         onnx_path = find_onnx_file_in_directoy(model_directory_path) #.replace('\\', '/')
         module_path = find_module_file_in_directoy(model_directory_path, module_fname)
         print('module path:' , module_path)
@@ -111,10 +145,15 @@ def parse_github_url(url, module_fname, class_name):
             onnx.checker.check_model(onnx_path)
         except:
             # invalid onnx file
-            return {'status': -1, 'module_validity': module_valid}
-        
-    # valid GitHub url with valid file 
-    return {'status': 1, 'star_count': star_count, 'owner_name': owner_name, 'module_validity': module_valid}
+            result_json['status'] = Status.INVALID_ONNX.value
+    # load metadata from github
+    result_json['star_count'] = star_count
+    result_json['owner_name'] = owner_name
+    result_json['module_validity'] = module_valid
+    result_json['onnx_size'] = target_onnx_size[0]
+    # default status is 1 if success
+
+    return result_json
 
 
 def convert2github_api(url):
@@ -148,17 +187,22 @@ def get_github_metadata(url):
     Get repo meta data
     """
     result = get_github_json(url)
-    return result['stargazers_count'], result['owner']['login']
+    if result is None:
+        return None
+    else:
+        return result['stargazers_count'], result['owner']['login']
 
 
 def get_github_json(url):
     """
     Get JSON with github token (to avoid API call limit) 
     """
+    result = None
     try:
         response = requests.get(url, auth=(github_username, github_token)).text
         result = json.loads(response)         
     except Exception as e:
+        result_json['status'] = Status.INVALID_URL.value
         print('Get Github API JSON fail from the link: {}'.format(url))
         print(e)    
     return result
