@@ -7,6 +7,12 @@ import os
 import os.path as osp
 import onnx
 
+import sys
+import importlib
+import torch
+import torch.nn as nn
+from torchsummary import summary
+
 github_username = ""
 github_token = ""
 
@@ -56,8 +62,35 @@ def find_onnx_file_in_directoy(path):
                 return osp.join(path, filename)
     return None
 
+def find_module_file_in_directoy(path):
+    """
+    return nn.module python file path name.
+    """
+    for root, dirs, files in os.walk(path):
+        for filename in files:
+            if filename.endswith('.py'):
+                return path
+    return None
 
-def parse_github_url(url):
+def validate_module_file(path, module_fname, class_name, input_size, default_inputs):
+    sys.path.append(path)
+    net = importlib.import_module(module_fname).__getattribute__(class_name)
+    if not issubclass(net, nn.Module):
+        print('module error')
+
+    try:
+        net = net(**default_inputs)
+    except:
+        print('arguments incorrect')
+
+    try:
+        summary(net, input_size=input_size)
+    except:
+        print('input shape error')
+    else:
+        print('success')
+
+def parse_github_url(url, module_fname, class_name, input_size, default_inputs):
     """
     parse files, validate the target model and get metadata from the GitHub url
     Args:
@@ -75,7 +108,10 @@ def parse_github_url(url):
         os.mkdir(model_directory_path)
         download_from_directory(osp.join(content_url, 'model'), model_directory_path)
         onnx_path = find_onnx_file_in_directoy(model_directory_path) #.replace('\\', '/')
-        print(onnx_path)
+        module_path = find_module_file_in_directoy(model_directory_path)
+        print("module path:", module_path)
+        print("onnx path:", onnx_path)
+        validate_module_file(module_path, module_fname, class_name, input_size, default_inputs)
         try:
             # onnx model validation
             onnx.checker.check_model(onnx_path)
@@ -133,9 +169,16 @@ def main():
     parser = argparse.ArgumentParser(description='load onnx from github')
     parser.add_argument('--url', type=str,
                         help='github url which user provides')
+
+    # for nn.Module validation
+    parser.add_argument('--module_name', action='store', default='model', dest='module_fname', type=str)
+    parser.add_argument('--obj_name', action='store', default='Net', dest='class_name', type=str)
+    parser.add_argument('--input_size', action='store', default=(1,28,28), type=tuple)
+    parser.add_argument('--default_inputs', action='store', default={}, type=dict)
+
     args = parser.parse_args()
     set_github_auth()
-    output_json = parse_github_url(args.url)
+    output_json = parse_github_url(args.url, args.module_fname, args.class_name, args.input_size, args.default_inputs)
     print(output_json)
 
 
