@@ -15,6 +15,7 @@ bat install_py_lib.bat
 
 
 # Run
+Run `load_onnx_from_github.py` with arguments to output the result JSON.
 ```
 python load_onnx_from_github.py --url [github_link]
 # python load_onnx_from_github.py --url https://github.com/jcwchen/MLabHack2020/tree/master/data/onnx/mnist
@@ -32,6 +33,22 @@ For example:
 ```
 {'status': 1, 'star_count': 1, 'owner_name': 'jcwchen', 'module_validity': True, 'onnx_size': 13104783}
 ```
+
+### Status
+As described in [load_onnx_from_github.py](load_onnx_from_github.py), the validation status is as follows:
+```
+class Status(Enum):
+    SUCCESS = 1
+    INVALID_ONNX = -1
+    MULTIPLE_ONNX_FILES = -2
+    INVALID_URL = -3
+    ONNX_NOT_FOUND = -4
+```
+* SUCCESS (1) means parse the Github link successfully.
+* INVALID_ONNX (-1) means the target onnx model is not valid which cannot pass `onnx.checker.check_model`
+* MULTIPLE_ONNX_FILES (-2) means there are more than 1 onnx model in the target directoy. Current parser only allows single onnx model.
+* INVALID_URL (-3) means the parser cannot parse the JSON from the GitHub url. The provided link might be broken.
+* ONNX_NOT_FOUND (-4) means there are no `.onnx` model in the target directory.
 
 # Call python via C#
 To call a python script via C#, you can create a function like:
