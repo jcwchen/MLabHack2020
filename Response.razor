@@ -1,0 +1,33 @@
+@page "/response"
+
+<h1>Response</h1>
+
+<p>Current response: @response</p>
+
+<button class="btn btn-primary" @onclick="run_cmd">Click me</button>
+
+@using System.Diagnostics
+@using System.IO
+@code {
+    private String response = "";
+
+    private void run_cmd()
+    {
+        String cmd = "C:\\to\\your\\path\\GitHub\\MLabHack2020\\load_onnx_from_github.py";
+        String arg = "--url https://github.com/jcwchen/MLabHack2020/tree/master/data/onnx/mnist";
+        ProcessStartInfo start = new ProcessStartInfo();
+        start.FileName = "C:\\to\\your\\path\\Miniconda3\\python.exe";
+        start.Arguments = string.Format("{0} {1}", cmd, arg);
+        start.UseShellExecute = false;
+        start.RedirectStandardOutput = true;
+        using (Process process = Process.Start(start))
+        {
+            using (StreamReader reader = process.StandardOutput)
+            {
+                string result = reader.ReadToEnd();
+                response = result;
+                Console.Write(result);
+            }
+        }
+    }
+}
