@@ -62,35 +62,30 @@ def find_onnx_file_in_directoy(path):
                 return osp.join(path, filename)
     return None
 
-def find_module_file_in_directoy(path):
+def find_module_file_in_directoy(path, module_fname):
     """
     return nn.module python file path name.
     """
     for root, dirs, files in os.walk(path):
         for filename in files:
-            if filename.endswith('.py'):
+            if filename == (module_fname + '.py'):
                 return path
     return None
 
-def validate_module_file(path, module_fname, class_name, input_size, default_inputs):
+def validate_module_file(path, module_fname, class_name):
     sys.path.append(path)
-    net = importlib.import_module(module_fname).__getattribute__(class_name)
+    try:
+        net = importlib.import_module(module_fname).__getattribute__(class_name)
+    except:
+        print('Module not found')
+        return False
     if not issubclass(net, nn.Module):
-        print('module error')
+        print('Module not a valid class')
+        return False
+    print('success')
+    return True
 
-    try:
-        net = net(**default_inputs)
-    except:
-        print('arguments incorrect')
-
-    try:
-        summary(net, input_size=input_size)
-    except:
-        print('input shape error')
-    else:
-        print('success')
-
-def parse_github_url(url, module_fname, class_name, input_size, default_inputs):
+def parse_github_url(url, module_fname, class_name):
     """
     parse files, validate the target model and get metadata from the GitHub url
     Args:
@@ -108,19 +103,21 @@ def parse_github_url(url, module_fname, class_name, input_size, default_inputs):
         os.mkdir(model_directory_path)
         download_from_directory(osp.join(content_url, 'model'), model_directory_path)
         onnx_path = find_onnx_file_in_directoy(model_directory_path) #.replace('\\', '/')
-        module_path = find_module_file_in_directoy(model_directory_path)
+        module_path = find_module_file_in_directoy(model_directory_path, module_fname)
         print("module path:", module_path)
         print("onnx path:", onnx_path)
-        validate_module_file(module_path, module_fname, class_name, input_size, default_inputs)
+        module_valid = False
+        if module_path:
+            module_valid = validate_module_file(module_path, module_fname, class_name)
         try:
             # onnx model validation
             onnx.checker.check_model(onnx_path)
         except:
             # invalid onnx file
-            return {'status': -1}
+            return {'status': -1, 'module_validity': module_valid}
         
     # valid GitHub url with valid file 
-    return {'status': 1, 'star_count': star_count, 'owner_name': owner_name}
+    return {'status': 1, 'star_count': star_count, 'owner_name': owner_name, 'module_validity': module_valid}
 
 
 def convert2github_api(url):
@@ -173,12 +170,10 @@ def main():
     # for nn.Module validation
     parser.add_argument('--module_name', action='store', default='model', dest='module_fname', type=str)
     parser.add_argument('--obj_name', action='store', default='Net', dest='class_name', type=str)
-    parser.add_argument('--input_size', action='store', default=(1,28,28), type=tuple)
-    parser.add_argument('--default_inputs', action='store', default={}, type=dict)
 
     args = parser.parse_args()
     set_github_auth()
-    output_json = parse_github_url(args.url, args.module_fname, args.class_name, args.input_size, args.default_inputs)
+    output_json = parse_github_url(args.url, args.module_fname, args.class_name)
     print(output_json)
 
 
