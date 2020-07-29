@@ -7,7 +7,8 @@ This repo validates the onnx model and get metadata from Github.
 # Installation
 
 ### Window
-Install python libraries to run `load_onnx_from_github.py`
+Install Python >= 3.6 
+Install Python libraries to run `load_onnx_from_github.py`
 
 ```
 bat install_py_lib.bat
