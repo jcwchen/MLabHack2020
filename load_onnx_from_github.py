@@ -33,8 +33,9 @@ def set_github_auth():
         github_username = secret_config.GITHUB_USERNAME
         github_token = secret_config.GITHUB_TOKEN
     except Exception as e:
-        print('Warning: set GitHub authentication to increase API call limit.')
-        print(e)
+        pass
+        # print('Warning: set GitHub authentication to increase API call limit.')
+        # print(e)
         
 def download_from_directory(url, save_directory, exclude_name={}):
     """
@@ -98,12 +99,12 @@ def validate_module_file(path, module_fname, class_name):
     try:
         net = importlib.import_module(module_fname).__getattribute__(class_name)
     except:
-        print('Module not found')
+        # print('Module not found')
         return False
     if not issubclass(net, nn.Module):
-        print('Module not a valid class')
+        # print('Module not a valid class')
         return False
-    print('success')
+    # print('success')
     return True
 
 def parse_github_url(url, module_fname, class_name):
@@ -135,8 +136,8 @@ def parse_github_url(url, module_fname, class_name):
             return result_json
         onnx_path = find_onnx_file_in_directoy(model_directory_path) #.replace('\\', '/')
         module_path = find_module_file_in_directoy(model_directory_path, module_fname)
-        print('module path:' , module_path)
-        print('onnx path: ', onnx_path)
+        # print('module path:' , module_path)
+        # print('onnx path: ', onnx_path)
         module_valid = False
         if module_path:
             module_valid = validate_module_file(module_path, module_fname, class_name)
@@ -203,8 +204,8 @@ def get_github_json(url):
         result = json.loads(response)         
     except Exception as e:
         result_json['status'] = Status.INVALID_URL.value
-        print('Get Github API JSON fail from the link: {}'.format(url))
-        print(e)    
+        # print('Get Github API JSON fail from the link: {}'.format(url))
+        # print(e)    
     return result
 
     
