@@ -1,7 +1,6 @@
 import argparse
 import json
 import requests
-import json
 import tempfile
 import os
 import os.path as osp
@@ -24,6 +23,7 @@ def set_github_auth():
         github_username = secret_config.GITHUB_USERNAME
         github_token = secret_config.GITHUB_TOKEN
     except Exception as e:
+        print('Warning: set GitHub authentication to increase API call limit.')
         print(e)
         
 def download_from_directory(url, save_directory, exclude_name={}):
@@ -35,9 +35,8 @@ def download_from_directory(url, save_directory, exclude_name={}):
         e.g., https://github.com/jcwchen/MLabHack2020/tree/master/data/onnx/mnist
         save_directory (str): save path locally
         (Optional) exclude_name (str): exclude some files or directories  
-    """    
-    response = requests.get(url, auth=(github_username, github_token)).text
-    result = json.loads(response)
+    """
+    result = get_github_json(url)
     for files in result:
         if files['download_url']:
             file_path = osp.join(save_directory, files['name'])
@@ -102,8 +101,8 @@ def parse_github_url(url, module_fname, class_name):
         download_from_directory(osp.join(content_url, 'model'), model_directory_path)
         onnx_path = find_onnx_file_in_directoy(model_directory_path) #.replace('\\', '/')
         module_path = find_module_file_in_directoy(model_directory_path, module_fname)
-        print("module path:", module_path)
-        print("onnx path:", onnx_path)
+        print('module path:' , module_path)
+        print('onnx path: ', onnx_path)
         module_valid = False
         if module_path:
             module_valid = validate_module_file(module_path, module_fname, class_name)
@@ -156,8 +155,13 @@ def get_github_json(url):
     """
     Get JSON with github token (to avoid API call limit) 
     """
-    response = requests.get(url, auth=(github_username, github_token)).text
-    return json.loads(response)
+    try:
+        response = requests.get(url, auth=(github_username, github_token)).text
+        result = json.loads(response)         
+    except Exception as e:
+        print('Get Github API JSON fail from the link: {}'.format(url))
+        print(e)    
+    return result
 
     
 def main():
@@ -172,6 +176,7 @@ def main():
     args = parser.parse_args()
     set_github_auth()
     output_json = parse_github_url(args.url, args.module_fname, args.class_name)
+    # output JSON to C# server to catch
     print(output_json)
 
 
