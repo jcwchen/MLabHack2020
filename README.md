@@ -12,6 +12,13 @@ Install python libraries to run `load_onnx_from_github.py`
 ```
 bat install_py_lib.bat
 ```
+### To increase calling API limit, you need to set Github Authentication
+To do so, you need to manually create another python file `secret_config.py`. That file needs to contain:
+```
+GITHUB_USERNAME = 'YOUR_GITHUB_USERNAME'
+GITHUB_TOKEN = 'YOUR_GITHUB_ACCESS_TOKEN'
+```
+You can obtain a GitHub Access Token from the GitHub Settings -> Developer settings -> Personal access tokens -> Generate new token -> check `read:packages` -> get the GitHub Access Token
 
 
 # Run
