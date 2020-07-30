@@ -1,7 +1,7 @@
 # MobileNet V2
 
 ### Github Link
-```https://github.com/DYBCyrus/OnnxPytorchModels/tree/master/MobileNet```
+```https://github.com/jcwchen/MLabHack2020/tree/master/MobileNet```
 
 ### Onnx File Name
 ```mobilenetv2-7```
