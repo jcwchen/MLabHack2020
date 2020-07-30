@@ -48,7 +48,7 @@ def preprocess(img):
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     img = transform_fn(img)
-    img = img.expand_dims(axis=0) # batchify
+    img = img.view(1,3,224,224) # batchify
     
     return img
 ```
