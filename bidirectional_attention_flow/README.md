@@ -91,10 +91,10 @@ N/A
 ```https://arxiv.org/pdf/1611.01603.pdf```
 
 ### Evaluation Metrics
-```N/A```
+```Exact Matching (EM)```
 
 ### Evaluation Results
-```N/A```
+```68.1```
 
 ### Training/Validation Loss Graph
 ```N/A```
