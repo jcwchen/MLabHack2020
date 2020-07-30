@@ -1,31 +1,25 @@
-# MobileNet V2
+# ResNet18 V1
 
 ### Github Link
-```https://github.com/jcwchen/MLabHack2020/tree/master/MobileNet```
+```https://github.com/jcwchen/MLabHack2020/edit/master/ResNet18-v1/```
 
 ### Onnx File Name
-```mobilenetv2-7```
+```resnet18-v1-7```
 
 ### Include Training and Inference
-```True```
-
-### Python/Module File name
-```mobilenetv2```
-
-### Module Class Name
-```MobileNetV2```
+```False```
 
 ### Model Name
-```mobile-net-v2```
+```resnet18-v1```
 
 ### Category Name
 ```Computer Vision```
 
 ### Tasks
-```Classification, Mobile Vision Applications```
+```Image Classification```
 
 ### Cover Image
-```https://miro.medium.com/max/1016/1*5iA55983nBMlQn9f6ICxKg.png```
+```https://i.imgur.com/XwcnU5x.png```
 
 ### Input Description
 All pre-trained models expect input images normalized in the same way, i.e. mini-batches of 3-channel RGB images of shape (N x 3 x H x W), 
@@ -79,8 +73,7 @@ def postprocess(scores):
 
 ### Hyperparameter Description
 ```
-learning rate = 0.045, optimizer = SGD, batch size = 40, total number of epochs = 480, weight decay = 0.00004, 
-momentum = 0.9, learning rate decay = 0.98, learning rate decay period = 1
+N/A
 ```
 
 ### Dataset Name
@@ -90,16 +83,16 @@ momentum = 0.9, learning rate decay = 0.98, learning rate decay period = 1
 ```http://www.image-net.org/challenges/LSVRC/2012/```
 
 ### Paper Authors
-```Mark Sandler, Andrew Howard, Menglong Zhu, Andrey Zhmoginov, Liang-Chieh Chen```
+```Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun```
 
 ### Paper Link
-```https://arxiv.org/pdf/1801.04381.pdf```
+```https://arxiv.org/pdf/1512.03385.pdf```
 
 ### Evaluation Metrics
 ```accuracy```
 
 ### Evaluation Results
-```Top-1 accuracy: 70.94%, Top-5 accuracy: 89.99%```
+```Top-1 accuracy: 69.93%, Top-5 accuracy: 89.29%```
 
 ### Training/Validation Loss Graph
 ```N/A```
