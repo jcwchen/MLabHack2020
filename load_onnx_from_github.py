@@ -24,6 +24,18 @@ github_token = ""
 target_onnx_size = [0]
 result_json = {'status': Status.SUCCESS.value}
 
+def download_onnx_model(previous_result, deeper_download_url):
+    result = get_github_json(deeper_download_url)
+    # If file >= 100MB, it needs to be download via deeper download_url (GitHub LFS) 
+    if 'download_url' in result:
+        print(result['download_url'])
+        target_onnx_size[0] = result['size']
+        return result['download_url']
+    # Otherwise, simply use download_url
+    else:
+        target_onnx_size[0] = previous_result['size']
+        return previous_result['download_url']
+
 
 def set_github_auth():
     """
@@ -52,26 +64,25 @@ def download_from_directory(url, save_directory, exclude_name={}):
         Status: download status
     """
     result = get_github_json(url)
-    if not result_json['status']:
+    if result_json['status'] != Status.SUCCESS.value:
         return result_json['status']
     for files in result:
+        if files['name'].endswith('.onnx'):
+            # multiple onnx files in the same model directory
+            if target_onnx_size[0] != 0:
+                return Status.MULTIPLE_ONNX_FILES.value
         if files['download_url']:
+            download_url = download_onnx_model(files, files['url'])
+            file_url = requests.get(download_url)
             file_path = osp.join(save_directory, files['name'])
-            file_url = requests.get(files['download_url'])
             with open(file_path, 'wb') as f:
                 f.write(file_url.content)
         elif files['type'] == 'dir' and files['name'] not in exclude_name:
             directory_path = osp.join(save_directory, files['name'])
             os.mkdir(directory_path)
             download_status = download_from_directory(files['url'].replace('?ref=master', ''), directory_path, exclude_name)
-            if not download_status:
+            if download_status != Status.SUCCESS.value:
                 return download_status
-        if files['name'].endswith('.onnx'):
-            # multiple onnx files in the same model directory
-            if target_onnx_size[0] != 0:
-                return Status.MULTIPLE_ONNX_FILES.value
-            else:
-                target_onnx_size[0] = files['size']
     return Status.SUCCESS.value
 
 
@@ -129,7 +140,7 @@ def parse_github_url(url, module_fname, class_name):
         os.mkdir(model_directory_path)
         download_status = download_from_directory(osp.join(content_url, 'model'), model_directory_path)
         # download fail
-        if not download_status:
+        if download_status != Status.SUCCESS.value:
             result_json['status'] = download_status
             return result_json
         # onnx model not found
