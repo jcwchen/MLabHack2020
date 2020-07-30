@@ -22,7 +22,7 @@
 ```Computer Vision```
 
 ### Tasks
-```Classification, Mobile Vision Applications```
+```Image Classification, Mobile Vision Applications```
 
 ### Cover Image
 ```https://miro.medium.com/max/1016/1*5iA55983nBMlQn9f6ICxKg.png```
