@@ -11,7 +11,7 @@ Install Python >= 3.6
 Install Python libraries to run `load_onnx_from_github.py`
 
 ```
-install_py_lib.bat
+install_lib_github.bat
 ```
 ### To increase calling API limit, you need to set Github Authentication
 To do so, you need to manually create another python file `secret_config.py`. That file needs to contain:
@@ -98,3 +98,21 @@ To call a python script via C#, you can create a function like:
 * Get `result` from the output of the target python script. (JSON)
 * [Response.razor](Response.razor) is an example.
 
+# Demo: Model Inference
+### Super Resolution
+**Installation**
+```
+install_lib_demo.bat
+```
+**Super Resolution an image**
+```
+demo_super_resolution.py --input [input_filename] --output [output_filename]
+# e.g., python demo_super_resolution.py --input cat_224x224.jpg --output super_cat.jpg
+```
+###### Arguments
+
+--input: filename of input image
+
+--output: filename of output image
+
+Then there will be an output image after Super Resolution.
