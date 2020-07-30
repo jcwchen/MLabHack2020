@@ -9,32 +9,32 @@ def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 def super_image(input_filename, output_filename):
+    image_shape = (224, 224) # fixed for this model
     batch_size = 1 # test single image
-    ort_session = onnxruntime.InferenceSession("SuperResolution/model/super-resolution-10.onnx")
-    x = torch.randn(batch_size, 1, 224, 224, requires_grad=True)
 
-    # compute ONNX Runtime output prediction
+    # inference graph
+    ort_session = onnxruntime.InferenceSession("SuperResolution/model/super-resolution-10.onnx")
+    x = torch.randn(batch_size, 1, image_shape[0], image_shape[1], requires_grad=True)
     ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(x)}
     ort_outs = ort_session.run(None, ort_inputs)
-    img = Image.open("cat_224x224.jpg")
 
-    resize = transforms.Resize([224, 224])
+    # resize image into 224 * 224
+    img = Image.open(input_filename)
+    resize = transforms.Resize([image_shape[0], image_shape[1]])
     img = resize(img)
-
     img_ycbcr = img.convert('YCbCr')
     img_y, img_cb, img_cr = img_ycbcr.split()
-
     to_tensor = transforms.ToTensor()
     img_y = to_tensor(img_y)
     img_y.unsqueeze_(0)
-
+    
+    # inference with input image
     ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(img_y)}
     ort_outs = ort_session.run(None, ort_inputs)
     img_out_y = ort_outs[0]
-
+    
+    # process output image
     img_out_y = Image.fromarray(numpy.uint8((img_out_y[0] * 255.0).clip(0, 255)[0]), mode='L')
-
-    # get the output image follow post-processing step from PyTorch implementation
     final_img = Image.merge(
         "YCbCr", [
             img_out_y,
@@ -44,8 +44,6 @@ def super_image(input_filename, output_filename):
 
     final_img.save(output_filename)
 
-def main(args):
-    super_image("cat_224x224.jpg", "super_cat.jpg")
 
 def main():
     parser = argparse.ArgumentParser(description='demo Super Resolution')
@@ -55,6 +53,7 @@ def main():
 
     args = parser.parse_args()
     super_image(args.input, args.output)
+
 
 if __name__ == '__main__':
     main()
