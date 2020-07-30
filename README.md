@@ -27,6 +27,7 @@ Run `load_onnx_from_github.py` with arguments to output the result JSON.
 ```
 python load_onnx_from_github.py --url [github_link]
 # python load_onnx_from_github.py --url https://github.com/jcwchen/MLabHack2020/tree/master/data/onnx/mnist
+# python load_onnx_from_github.py --url https://github.com/jcwchen/MLabHack2020/tree/master/data/onnx/mnist --module_name base_model --obj_name baselineCNN
 ```
 ### Arguments
 --url: github url which user provides from form
@@ -51,12 +52,17 @@ class Status(Enum):
     MULTIPLE_ONNX_FILES = -2
     INVALID_URL = -3
     ONNX_NOT_FOUND = -4
+    MODULE_NOT_FOUND = -5
+    INVALID_CLASS_NAME = -6
 ```
 * SUCCESS (1) means parse the Github link successfully.
 * INVALID_ONNX (-1) means the target onnx model is not valid which cannot pass `onnx.checker.check_model`
 * MULTIPLE_ONNX_FILES (-2) means there are more than 1 onnx model in the target directoy. Current parser only allows single onnx model.
 * INVALID_URL (-3) means the parser cannot parse the JSON from the GitHub url. The provided link might be broken.
 * ONNX_NOT_FOUND (-4) means there are no `.onnx` model in the target directory.
+* MODULE_NOT_FOUND (-5) means there are no `.py` module file defined in the target directory.
+* INVALID_CLASS_NAME (-6) means the pytorch class/object name is invalid. Could be the case that the class is not a subclass of nn.Module, or 
+the class is not defined in the '.py' file.
 
 # Call python via C#
 To call a python script via C#, you can create a function like:
