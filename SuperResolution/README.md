@@ -79,10 +79,10 @@ N/A
 ```http://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/BSDS300-images.tgz```
 
 ### Paper Authors
-```N/A```
+```Wenzhe Shi, Jose Caballero, Ferenc Huszár, Johannes Totz, Andrew P. Aitken, Rob Bishop, Daniel Rueckert, Zehan Wang```
 
 ### Paper Link
-```N/A```
+```https://arxiv.org/pdf/1609.05158.pdf```
 
 ### Evaluation Metrics
 ```N/A```
