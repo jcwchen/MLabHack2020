@@ -1,78 +1,106 @@
-# Bidirectional Attention Flow
+# Bert Squad
 
 ### Github Link
-```https://github.com/jcwchen/MLabHack2020/edit/master/bidirectional_attention_flow/```
+```https://github.com/jcwchen/MLabHack2020/edit/master/BertSquad/```
 
 ### Onnx File Name
-```bidaf-9```
+```bertsquad-8```
 
 ### Include Training and Inference
 ```False```
 
 ### Model Name
-```bidirectional attention flow model```
+```bert-squad```
 
 ### Category Name
 ```Natural Language Processing```
 
 ### Tasks
-```Machine Comprehension, Query Answering, Text Understanding```
+```Machine Comprehension, Query Answering, Text Understanding, Sentence Relation```
 
 ### Cover Image
-```https://raw.githubusercontent.com/GauthierDmn/question_answering/master/bidaf-architecture.png```
+```https://miro.medium.com/max/1840/1*QhIXsDBEnANLXMA0yONxxA.png```
 
 ### Input Description
-Tokenized strings of context paragraph and query.
+The input is a paragraph and questions relating to that paragraph. The model uses the WordPiece tokenization method to split the input paragraph and questions into list of tokens that are available in the vocabulary (30,522 words). Then converts these tokens into features
+
+- input_ids: list of numerical ids for the tokenized text
+- input_mask: will be set to 1 for real tokens and 0 for the padding tokens
+- segment_ids: for our case, this will be set to the list of ones
+- label_ids: one-hot encoded labels for the text
 
 ### Preprocessing Description
-Tokenize words and chars in string for context and query. The tokenized words are in lower case, while chars are not. Chars of each word needs to be clamped or padded to list of length 16. Note NLTK is used in preprocess for word tokenize.
+Write an inputs.json file that includes the context paragraph and questions.
 
-- context_word: [seq, 1,] of string
-- context_char: [seq, 1, 1, 16] of string
-- query_word: [seq, 1,] of string
-- query_char: [seq, 1, 1, 16] of string
-
-The following code shows how to preprocess input strings:
+```
+%%writefile inputs.json
+{
+  "version": "1.4",
+  "data": [
+    {
+      "paragraphs": [
+        {
+          "context": "In its early years, the new convention center failed to meet attendance and revenue expectations.[12] By 2002, many Silicon Valley businesses were choosing the much larger Moscone Center in San Francisco over the San Jose Convention Center due to the latter's limited space. A ballot measure to finance an expansion via a hotel tax failed to reach the required two-thirds majority to pass. In June 2005, Team San Jose built the South Hall, a $6.77 million, blue and white tent, adding 80,000 square feet (7,400 m2) of exhibit space",
+          "qas": [
+            {
+              "question": "where is the businesses choosing to go?",
+              "id": "1"
+            },
+            {
+              "question": "how may votes did the ballot measure need?",
+              "id": "2"
+            },
+            {
+              "question": "By what year many Silicon Valley businesses were choosing the Moscone Center?",
+              "id": "3"
+            }
+          ]
+        }
+      ],
+      "title": "Conference Center"
+    }
+  ]
+}
+```
+Get parameters and convert input examples into features
 ```python
-import numpy as np
-import string
-from nltk import word_tokenize
+# preprocess input
+predict_file = 'inputs.json'
 
-def preprocess(text):
-   tokens = word_tokenize(text)
-   # split into lower-case word tokens, in numpy array with shape of (seq, 1)
-   words = np.asarray([w.lower() for w in tokens]).reshape(-1, 1)
-   # split words into chars, in numpy array with shape of (seq, 1, 1, 16)
-   chars = [[c for c in t][:16] for t in tokens]
-   chars = [cs+['']*(16-len(cs)) for cs in chars]
-   chars = np.asarray(chars).reshape(-1, 1, 1, 16)
-   return words, chars
+# Use read_squad_examples method from run_onnx_squad to read the input file
+eval_examples = read_squad_examples(input_file=predict_file)
 
-# input
-context = 'A quick brown fox jumps over the lazy dog.'
-query = 'What color is the fox?'
-cw, cc = preprocess(context)
-qw, qc = preprocess(query)
+max_seq_length = 256
+doc_stride = 128
+max_query_length = 64
+batch_size = 1
+n_best_size = 20
+max_answer_length = 30
+
+vocab_file = os.path.join('uncased_L-12_H-768_A-12', 'vocab.txt')
+tokenizer = tokenization.FullTokenizer(vocab_file=vocab_file, do_lower_case=True)
+
+# Use convert_examples_to_features method from run_onnx_squad to get parameters from the input
+input_ids, input_mask, segment_ids, extra_data = convert_examples_to_features(eval_examples, tokenizer,
+                                                                              max_seq_length, doc_stride, max_query_length)
 ```
 
 ### Output Description
-The model has 2 outputs.
-
-- start_pos: the answer's start position (0-indexed) in context,
-- end_pos: the answer's inclusive end position (0-indexed) in context.
+For each question about the context paragraph, the model predicts a start and an end token from the paragraph that most likely answers the questions.
 
 ### Postprocessing Description
-Post processing and meaning of output.
+Write the predictions (answers to the questions) in a file.
 ```python
-# assuming answer contains the np arrays for start_pos/end_pos
-start = np.asscalar(answer[0])
-end = np.asscalar(answer[1])
-print([w.encode() for w in cw[start:end+1].reshape(-1)])
+# postprocess results
+output_dir = 'predictions'
+os.makedirs(output_dir, exist_ok=True)
+output_prediction_file = os.path.join(output_dir, "predictions.json")
+output_nbest_file = os.path.join(output_dir, "nbest_predictions.json")
+write_predictions(eval_examples, extra_data, all_results,
+                  n_best_size, max_answer_length,
+                  True, output_prediction_file, output_nbest_file)
 ```
-For this testcase, it would output
-```
-[b'brown'].
-```
+
 ### Hyperparameter Description
 ```
 N/A
@@ -85,16 +113,16 @@ N/A
 ```https://rajpurkar.github.io/SQuAD-explorer/explore/1.1/dev/```
 
 ### Paper Authors
-```Minjoon Seo, Aniruddha Kembhavi, Ali Farhadi, Hannaneh Hajishirzi```
+```Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova```
 
 ### Paper Link
-```https://arxiv.org/pdf/1611.01603.pdf```
+```https://arxiv.org/pdf/1810.04805.pdf```
 
 ### Evaluation Metrics
-```N/A```
+```Exact Matching (EM)```
 
 ### Evaluation Results
-```N/A```
+```80.7```
 
 ### Training/Validation Loss Graph
 ```N/A```
