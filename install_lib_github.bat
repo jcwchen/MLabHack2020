@@ -5,5 +5,5 @@ pip install requests
 pip install protobuf==3.11.3
 pip install numpy
 pip install onnx
-Rem install pytorch without GPU
+Rem Install PyTorch without GPU
 pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
