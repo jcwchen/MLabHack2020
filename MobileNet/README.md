@@ -54,7 +54,8 @@ def preprocess(img):
 ```
 
 ### Output Description
-The model outputs image scores for each of the 1000 classes of ImageNet.
+The model outputs image scores for each of the 1000 classes of ImageNet. 
+[Output class reference](https://github.com/onnx/models/blob/master/vision/classification/synset.txt)
 
 ### Postprocessing Description
 The post-processing involves calculating the softmax probablility scores for each class and sorting them to report the most probable classes.
