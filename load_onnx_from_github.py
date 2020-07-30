@@ -16,6 +16,8 @@ class Status(Enum):
     MULTIPLE_ONNX_FILES = -2
     INVALID_URL = -3
     ONNX_NOT_FOUND = -4
+    MODULE_NOT_FOUND = -5
+    INVALID_CLASS_NAME = -6
 
 github_username = ""
 github_token = ""
@@ -141,6 +143,10 @@ def parse_github_url(url, module_fname, class_name):
         module_valid = False
         if module_path:
             module_valid = validate_module_file(module_path, module_fname, class_name)
+            if not module_valid:
+                result_json['status'] = Status.INVALID_CLASS_NAME.value
+        else:
+            result_json['status'] = Status.MODULE_NOT_FOUND.value
         try:
             # onnx model validation
             onnx.checker.check_model(onnx_path)
