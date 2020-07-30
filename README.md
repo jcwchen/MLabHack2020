@@ -106,8 +106,8 @@ install_lib_demo.bat
 ```
 **Super Resolution an image**
 ```
-demo_super_resolution.py --input [input_filename] --output [output_filename]
-# e.g., python demo_super_resolution.py --input cat_224x224.jpg --output super_cat.jpg
+python demo_super_resolution.py --input [input_filename] --output [output_filename]
+# python demo_super_resolution.py --input cat_224x224.jpg --output super_cat.jpg
 ```
 ###### Arguments
 
