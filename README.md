@@ -116,3 +116,14 @@ python demo_super_resolution.py --input [input_filename] --output [output_filena
 --output: filename of output image
 
 Then there will be an output image after Super Resolution.
+
+### MobileNet V2
+**Predict a category of an image**
+```
+python demo_mobilenet.py --input [input_filename]
+# python demo_mobilenet.py --input plane.jpg
+```
+**Output**
+
+After running the demo script, you will get a predicted category (an integer). Refer to [all categories](https://github.com/onnx/models/blob/master/vision/classification/synset.txt) to obtain the category name. For example, an output of 896 corresponds to
+the category at line 896.
