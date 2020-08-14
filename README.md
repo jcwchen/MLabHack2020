@@ -1,8 +1,11 @@
 # MLabHack2020
-
+Project Link (Demo Video):
 https://garagehackbox.azurewebsites.net/hackathons/2107/projects/93460
 
 This repo validates the onnx model and get metadata from Github. 
+
+Web url:
+https://mlabhack2020.azurewebsites.net/
 
 # Installation
 
